@@ -76,33 +76,43 @@ async function processVideoGeneration(
 
     const replicate = new Replicate({ auth: params.token });
 
-    // Use Seedance for image-to-video
-    const palette = params.mood === "upbeat" ? "teal/cyan" : 
-                    params.mood === "sleepy" ? "indigo/navy" : "lilac/gray";
+    // Use a simpler text-to-video model that works reliably
+    const palette = params.mood === "upbeat" ? "bright colorful" : 
+                    params.mood === "sleepy" ? "calm blue" : "neutral purple";
     
-    const prompt = `Vertical 5s reaction clip. Animated ${palette} gradient. Kinetic captions: "${sanitize(params.line)}". Rounded bold font with outline. Subtle sparkles. Wholesome vibe.`;
+    const prompt = `A short 5-second vertical video with animated text: "${sanitize(params.line)}". ${palette} gradient background, kinetic typography, bold rounded font with white outline, subtle sparkles, wholesome aesthetic.`;
 
-    console.log(`Calling Seedance with prompt: ${prompt}`);
+    console.log(`Calling text-to-video with prompt: ${prompt}`);
 
-    // Using a simpler image-to-video model that's available
     const output = await replicate.run(
-      "stability-ai/stable-video-diffusion:3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
+      "anotherjesse/zeroscope-v2-xl:9f747673945c62801b13b84701c6a83eea0d493e81006a9122c5dc1f4e76edda",
       {
         input: {
-          input_image: params.imageBase64,
-          video_length: "14_frames_with_svd",
-          sizing_strategy: "maintain_aspect_ratio",
-          frames_per_second: 6,
-          motion_bucket_id: 127
+          prompt: prompt,
+          width: 576,
+          height: 1024,
+          num_frames: 24,
+          fps: 8
         }
       }
     );
 
-    // Extract video URL from output
-    const videoUrl = Array.isArray(output) ? output[0] : (output as any)?.output?.[0];
+    console.log(`Replicate output:`, output);
+
+    // Extract video URL from output - handle different possible formats
+    let videoUrl: string | null = null;
     
-    if (!videoUrl) {
-      throw new Error("Seedance did not return a video URL");
+    if (typeof output === 'string') {
+      videoUrl = output;
+    } else if (Array.isArray(output) && output.length > 0) {
+      videoUrl = output[0];
+    } else if (output && typeof output === 'object') {
+      videoUrl = (output as any).output || (output as any).url || (output as any).video_url;
+    }
+    
+    if (!videoUrl || typeof videoUrl !== 'string') {
+      console.error('Unexpected output format:', output);
+      throw new Error(`Video generation failed - no valid URL returned. Output: ${JSON.stringify(output)}`);
     }
 
     console.log(`Video generated successfully for job ${jobId}: ${videoUrl}`);
