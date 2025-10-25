@@ -187,7 +187,7 @@ const Index = () => {
 
         {/* Footer */}
         <footer className="mt-16 text-center text-sm text-muted-foreground">
-          <p>Remember: MirrorGPT's wisdom is 100% chaotic and 0% medical advice</p>
+          <p>AI reflections provided for entertainment and minor humiliation only.</p>
         </footer>
       </div>
     </div>;
