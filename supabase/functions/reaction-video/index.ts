@@ -107,8 +107,8 @@ async function processVideoGeneration(
       "bytedance/omni-human",
       {
         input: {
-          reference_image: params.imageBase64,
-          driven_audio: audioUrl
+          image: params.imageBase64,
+          audio: audioUrl
         }
       }
     );
