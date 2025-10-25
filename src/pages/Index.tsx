@@ -14,12 +14,14 @@ const Index = () => {
   const [tone, setTone] = useState<"compliment" | "roast" | "coach">("coach");
   const [isVideoPending, setIsVideoPending] = useState(false);
   const [reactionUrl, setReactionUrl] = useState<string | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleCapture = async (imageData: string) => {
     setIsProcessing(true);
     setMessage(null);
     setReactionUrl(null);
+    setAudioUrl(null);
     setIsVideoPending(false);
 
     try {
@@ -45,6 +47,9 @@ const Index = () => {
         setMessage(data.message);
         setMood(data.mood);
 
+        // Generate audio for the message
+        generateAudio(data.message);
+
         // Start video generation in background
         startVideoGeneration(imageData, data.message, data.mood);
       }
@@ -57,6 +62,36 @@ const Index = () => {
       });
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const generateAudio = async (text: string) => {
+    try {
+      console.log("Generating audio for message:", text);
+      
+      const { data, error } = await supabase.functions.invoke('text-to-speech', {
+        body: { text, voice: 'nova' } // nova is a clear, friendly voice
+      });
+
+      if (error) throw error;
+
+      if (data?.audioContent) {
+        // Convert base64 to audio URL
+        const audioBlob = new Blob(
+          [Uint8Array.from(atob(data.audioContent), c => c.charCodeAt(0))],
+          { type: 'audio/mpeg' }
+        );
+        const url = URL.createObjectURL(audioBlob);
+        setAudioUrl(url);
+        console.log("Audio generated successfully");
+      }
+    } catch (error) {
+      console.error("Error generating audio:", error);
+      toast({
+        title: "Audio generation failed",
+        description: "Could not generate speech for the message",
+        variant: "destructive",
+      });
     }
   };
 
@@ -175,6 +210,14 @@ const Index = () => {
                     controls 
                     className="w-full max-h-[560px] rounded-2xl bg-black/80 border-2 border-primary/30"
                   />
+                  {/* Audio player - plays alongside video */}
+                  {audioUrl && (
+                    <audio
+                      src={audioUrl}
+                      autoPlay
+                      className="hidden"
+                    />
+                  )}
                 </div>
               )}
             </div>
