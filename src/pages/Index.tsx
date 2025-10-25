@@ -149,8 +149,21 @@ const Index = () => {
           {/* Control Panel */}
           
 
-          {/* Webcam Capture */}
-          <WebcamCapture onCapture={handleCapture} isProcessing={isProcessing} />
+          {/* Webcam Capture or Video */}
+          {!reactionUrl ? (
+            <WebcamCapture onCapture={handleCapture} isProcessing={isProcessing} />
+          ) : (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <video 
+                src={reactionUrl} 
+                autoPlay 
+                playsInline 
+                loop 
+                controls 
+                className="w-full max-h-[560px] rounded-3xl bg-black border-4 border-primary shadow-[var(--glow-purple)]" 
+              />
+            </div>
+          )}
 
           {/* Message Display */}
           {message && <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
@@ -164,11 +177,6 @@ const Index = () => {
                     <div className="w-2 h-2 rounded-full bg-secondary animate-pulse delay-75" />
                     <div className="w-2 h-2 rounded-full bg-accent animate-pulse delay-150" />
                   </div>
-                </div>}
-
-              {/* Talking Avatar Video */}
-              {reactionUrl && <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <video src={reactionUrl} autoPlay playsInline loop controls className="w-full max-h-[560px] rounded-2xl bg-black/80 border-2 border-primary/30" />
                 </div>}
             </div>}
 
