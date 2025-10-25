@@ -76,7 +76,7 @@ export const WebcamCapture = ({ onCapture, isProcessing }: WebcamCaptureProps) =
 
   return (
     <div className="space-y-4">
-      <div className="relative rounded-3xl overflow-hidden border-4 border-primary shadow-[var(--glow-purple)] aspect-video">
+      <div className="relative rounded-2xl overflow-hidden border-4 border-blue-500/40 shadow-[0_0_30px_rgba(59,130,246,0.35)] bg-black/20 backdrop-blur-sm aspect-video">
         <video
           ref={videoRef}
           autoPlay
@@ -85,8 +85,8 @@ export const WebcamCapture = ({ onCapture, isProcessing }: WebcamCaptureProps) =
           className="w-full h-full object-cover"
         />
         {!hasPermission && (
-          <div className="absolute inset-0 flex items-center justify-center bg-card/80 backdrop-blur-sm">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <div className="absolute inset-0 flex items-center justify-center bg-blue-900/80 backdrop-blur-sm">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
           </div>
         )}
       </div>
@@ -96,7 +96,7 @@ export const WebcamCapture = ({ onCapture, isProcessing }: WebcamCaptureProps) =
       <Button
         onClick={captureFrame}
         disabled={!hasPermission || isProcessing}
-        className="w-full text-lg py-6 rounded-2xl bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity"
+        className="w-full py-6 text-lg font-semibold bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 hover:from-blue-500 hover:to-violet-500 shadow-[0_0_22px_rgba(59,130,246,0.45)] transition-all duration-300 ease-in-out"
         size="lg"
       >
         {isProcessing ? (
