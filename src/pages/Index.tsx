@@ -60,8 +60,10 @@ const Index = () => {
       setIsProcessing(false);
     }
   };
-  const startVideoGeneration = async (imageData: string, line: string, mood: string, attemptedRetry = false) => {
+  const startVideoGeneration = async (imageData: string, line: string, mood: string, retryCount = 0) => {
+    const maxRetries = 3;
     setIsVideoPending(true);
+    
     try {
       // Start video generation job
       const {
@@ -75,6 +77,7 @@ const Index = () => {
           mode: "seedance"
         }
       });
+      
       if (jobError || !jobData?.jobId) {
         console.error("Error starting video generation:", jobError);
         setIsVideoPending(false);
@@ -93,32 +96,38 @@ const Index = () => {
             jobId
           }
         });
+        
         if (statusError) {
           console.error("Error checking job status:", statusError);
           continue;
         }
+        
         if (statusData?.status === "succeeded" && statusData.videoUrl) {
           setReactionUrl(statusData.videoUrl);
           setIsVideoPending(false);
           break;
         }
+        
         if (statusData?.status === "failed") {
           console.error("Video generation failed:", statusData.error);
-          // If the model queue is full, retry once automatically
-          if (!attemptedRetry && typeof statusData?.error === 'string' && /queue is full/i.test(statusData.error)) {
+          
+          // Retry with exponential backoff if queue is full
+          if (retryCount < maxRetries && typeof statusData?.error === 'string' && /queue is full/i.test(statusData.error)) {
+            const waitTime = Math.min(5000 * Math.pow(2, retryCount), 30000); // Exponential backoff, max 30s
             toast({
               title: "Model queue is full",
-              description: "Retrying video generation…",
+              description: `Retrying in ${waitTime / 1000}s... (attempt ${retryCount + 1}/${maxRetries})`,
               variant: "default"
             });
-            await new Promise(r => setTimeout(r, 3000));
-            await startVideoGeneration(imageData, line, mood, true);
+            await new Promise(r => setTimeout(r, waitTime));
+            await startVideoGeneration(imageData, line, mood, retryCount + 1);
             return;
           }
+          
           setIsVideoPending(false);
           toast({
             title: "Video generation failed",
-            description: statusData?.error || "Could not generate reaction clip",
+            description: statusData?.error || "Could not generate reaction clip. The model may be temporarily unavailable.",
             variant: "destructive"
           });
           break;
