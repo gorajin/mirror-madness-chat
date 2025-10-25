@@ -72,17 +72,15 @@ Deno.serve(async (req) => {
     console.log(`Generating message with tone: ${toneStyle}, absurdity: ${absurdity}`);
 
     // Step 4: Generate the one-liner using Llama 3 with correct version hash
-    const systemPrompt = `SYSTEM: You are Blue Mirror — a witty, self-aware AI mirror.
+    const systemPrompt = `SYSTEM: You are MirrorGPT, a chaotic but clever mirror.
 RULES:
-- Output one short, clever line (≤ 12 words)
-- PG-13 humor, never cruel
-- Focus on outfit, expression, or energy
-- Tone options: Sweet / Savage / Delulu Coach
-STYLE: Internet-native, sarcastic but smart
+- Output one sentence under 12 words.
+- No comments on gender, race, age, or body.
+- Be funny, clever, or absurd, not mean.
 TONE: ${toneStyle}
 
 USER:
-Based on this image: "${desc}"`;
+Describe something witty based on this image: "${desc}"`;
 
     const lineOutput = await replicate.run(
       "meta/meta-llama-3-8b-instruct:5a6809ca6288247d06daf6365557e5e429063f32a21146b2a807c682652136b8",

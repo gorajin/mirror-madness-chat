@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { WebcamCapture } from "@/components/WebcamCapture";
 import { MessageBubble } from "@/components/MessageBubble";
-import { Button } from "@/components/ui/button";
+import { ControlPanel } from "@/components/ControlPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles } from "lucide-react";
@@ -60,10 +59,8 @@ const Index = () => {
       setIsProcessing(false);
     }
   };
-  const startVideoGeneration = async (imageData: string, line: string, mood: string, retryCount = 0) => {
-    const maxRetries = 3;
+  const startVideoGeneration = async (imageData: string, line: string, mood: string, attemptedRetry = false) => {
     setIsVideoPending(true);
-    
     try {
       // Start video generation job
       const {
@@ -77,7 +74,6 @@ const Index = () => {
           mode: "seedance"
         }
       });
-      
       if (jobError || !jobData?.jobId) {
         console.error("Error starting video generation:", jobError);
         setIsVideoPending(false);
@@ -96,38 +92,32 @@ const Index = () => {
             jobId
           }
         });
-        
         if (statusError) {
           console.error("Error checking job status:", statusError);
           continue;
         }
-        
         if (statusData?.status === "succeeded" && statusData.videoUrl) {
           setReactionUrl(statusData.videoUrl);
           setIsVideoPending(false);
           break;
         }
-        
         if (statusData?.status === "failed") {
           console.error("Video generation failed:", statusData.error);
-          
-          // Retry with exponential backoff if queue is full
-          if (retryCount < maxRetries && typeof statusData?.error === 'string' && /queue is full/i.test(statusData.error)) {
-            const waitTime = Math.min(5000 * Math.pow(2, retryCount), 30000); // Exponential backoff, max 30s
+          // If the model queue is full, retry once automatically
+          if (!attemptedRetry && typeof statusData?.error === 'string' && /queue is full/i.test(statusData.error)) {
             toast({
               title: "Model queue is full",
-              description: `Retrying in ${waitTime / 1000}s... (attempt ${retryCount + 1}/${maxRetries})`,
+              description: "Retrying video generation…",
               variant: "default"
             });
-            await new Promise(r => setTimeout(r, waitTime));
-            await startVideoGeneration(imageData, line, mood, retryCount + 1);
+            await new Promise(r => setTimeout(r, 3000));
+            await startVideoGeneration(imageData, line, mood, true);
             return;
           }
-          
           setIsVideoPending(false);
           toast({
             title: "Video generation failed",
-            description: statusData?.error || "Could not generate reaction clip. The model may be temporarily unavailable.",
+            description: statusData?.error || "Could not generate reaction clip",
             variant: "destructive"
           });
           break;
@@ -143,118 +133,63 @@ const Index = () => {
       setIsVideoPending(false);
     }
   };
-  return <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 bg-[length:200%_200%] animate-pulse">
+  return <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
-        <motion.div initial={{
-        opacity: 0,
-        y: -20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        duration: 0.5
-      }} className="text-center mb-12 space-y-3">
-          <h1 className="text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-violet-400 drop-shadow-[0_0_12px_rgba(59,130,246,0.55)] flex items-center justify-center gap-4">
-            <Sparkles className="w-10 h-10 md:w-14 md:h-14 text-blue-400" />
-            Blue Mirror
+        <div className="text-center mb-8 space-y-2">
+          <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent flex items-center justify-center gap-3">
+            <Sparkles className="w-8 h-8 md:w-12 md:h-12 text-primary" />
+            MirrorGPT
           </h1>
-          <p className="text-lg md:text-xl text-blue-200/80 italic font-light">
-            See crystal clear your truest self (and maybe regret it).
+          <p className="text-lg md:text-xl text-muted-foreground">
+            The Lovingly Unhelpful Smart Mirror
           </p>
-        </motion.div>
+        </div>
 
         <div className="space-y-8">
-          {/* Mood Mode Buttons */}
+          {/* Control Panel */}
           
 
           {/* Webcam Capture */}
-          <motion.div initial={{
-          opacity: 0,
-          y: 10
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          duration: 0.35,
-          delay: 0.2
-        }}>
-            <WebcamCapture onCapture={handleCapture} isProcessing={isProcessing} />
-          </motion.div>
+          <WebcamCapture onCapture={handleCapture} isProcessing={isProcessing} />
 
           {/* Message Display */}
-          {message && <motion.div initial={{
-          opacity: 0,
-          y: 10,
-          filter: 'blur(4px)'
-        }} animate={{
-          opacity: 1,
-          y: 0,
-          filter: 'blur(0px)'
-        }} exit={{
-          opacity: 0,
-          y: -10
-        }} transition={{
-          duration: 0.35,
-          ease: 'easeOut'
-        }} className="space-y-6">
+          {message && <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
               <MessageBubble message={message} mood={mood} />
               
               {/* Video Generation Status */}
-              {isVideoPending && <motion.div initial={{
-            opacity: 0
-          }} animate={{
-            opacity: 1
-          }} className="text-center p-6 rounded-2xl bg-blue-900/35 border border-blue-500/25 backdrop-blur-md">
-                  <p className="text-sm text-blue-200">🎬 Generating your reaction clip…</p>
+              {isVideoPending && <div className="text-center p-6 rounded-2xl bg-card/50 border border-primary/20">
+                  <p className="text-sm text-muted-foreground">🎬 Generating your reaction clip…</p>
                   <div className="flex justify-center gap-2 mt-3">
-                    <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
-                    <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse delay-75" />
-                    <div className="w-2 h-2 rounded-full bg-violet-400 animate-pulse delay-150" />
+                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                    <div className="w-2 h-2 rounded-full bg-secondary animate-pulse delay-75" />
+                    <div className="w-2 h-2 rounded-full bg-accent animate-pulse delay-150" />
                   </div>
-                </motion.div>}
+                </div>}
 
               {/* Talking Avatar Video */}
-              {reactionUrl && <motion.div initial={{
-            opacity: 0,
-            scale: 0.95
-          }} animate={{
-            opacity: 1,
-            scale: 1
-          }} transition={{
-            duration: 0.35
-          }}>
-                  <video src={reactionUrl} autoPlay playsInline loop controls className="w-full max-h-[560px] rounded-2xl bg-black/80 border-2 border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.35)]" />
-                </motion.div>}
-            </motion.div>}
+              {reactionUrl && <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <video src={reactionUrl} autoPlay playsInline loop controls className="w-full max-h-[560px] rounded-2xl bg-black/80 border-2 border-primary/30" />
+                </div>}
+            </div>}
 
           {/* Loading State */}
-          {isProcessing && <motion.div initial={{
-          opacity: 0
-        }} animate={{
-          opacity: 1
-        }} className="text-center space-y-4">
-              <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-blue-500/10 border border-blue-500/20">
-                <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
-                <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse delay-75" />
-                <div className="w-2 h-2 rounded-full bg-violet-400 animate-pulse delay-150" />
-                <span className="text-sm text-blue-200 ml-2">
+          {isProcessing && <div className="text-center space-y-4">
+              <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary/10 border border-primary/20">
+                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                <div className="w-2 h-2 rounded-full bg-secondary animate-pulse delay-75" />
+                <div className="w-2 h-2 rounded-full bg-accent animate-pulse delay-150" />
+                <span className="text-sm text-muted-foreground ml-2">
                   Consulting the mirror...
                 </span>
               </div>
-            </motion.div>}
+            </div>}
         </div>
 
         {/* Footer */}
-        <motion.footer initial={{
-        opacity: 0
-      }} animate={{
-        opacity: 1
-      }} transition={{
-        delay: 0.5
-      }} className="mt-16 text-center text-xs text-blue-300/60">
-          <p>Remember: Blue Mirror's wisdom is 100% chaotic and 0% medical advice.</p>
-        </motion.footer>
+        <footer className="mt-16 text-center text-sm text-muted-foreground">
+          <p>Remember: MirrorGPT's wisdom is 100% chaotic and 0% medical advice</p>
+        </footer>
       </div>
     </div>;
 };

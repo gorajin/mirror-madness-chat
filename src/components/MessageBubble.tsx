@@ -29,18 +29,18 @@ export const MessageBubble = ({ message, mood }: MessageBubbleProps) => {
 
   return (
     <div className="relative">
-      <div className="p-8 rounded-2xl bg-blue-900/35 border border-blue-500/25 backdrop-blur-md shadow-[0_0_30px_rgba(59,130,246,0.35)] transition-all duration-300">
+      <div className="p-8 rounded-3xl bg-gradient-to-br from-card to-muted border-2 border-primary/30 shadow-[var(--glow-purple)]">
         <div className="flex items-start gap-4">
           <span className="text-4xl flex-shrink-0">{getMoodEmoji(mood)}</span>
           <div className="flex-1 space-y-4">
-            <p className="text-xl md:text-2xl font-medium leading-relaxed text-blue-100 text-center">
+            <p className="text-xl md:text-2xl font-medium leading-relaxed text-foreground">
               {message}
             </p>
             <Button
               variant="ghost"
               size="sm"
               onClick={handleCopy}
-              className="hover:bg-blue-500/10 text-blue-200"
+              className="hover:bg-primary/10"
             >
               {copied ? (
                 <>
