@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        'kid-draws': ['Kid Draws', 'cursive', 'sans-serif'],
+        'kid-draws': ['Cabin Sketch', 'cursive', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
