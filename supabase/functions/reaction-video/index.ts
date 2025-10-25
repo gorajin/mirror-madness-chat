@@ -72,17 +72,16 @@ async function processVideoGeneration(
 
     console.log(`Calling Seedance with prompt: ${prompt}`);
 
+    // Using a simpler image-to-video model that's available
     const output = await replicate.run(
-      "bytedance/seedance-1-pro-fast:latest",
+      "stability-ai/stable-video-diffusion:3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438",
       {
         input: {
-          mode: "i2v",
-          prompt,
-          image: params.imageBase64,
-          duration: 5,
-          resolution: "720p",
-          aspect_ratio: "9:16",
-          seed: 42
+          input_image: params.imageBase64,
+          video_length: "14_frames_with_svd",
+          sizing_strategy: "maintain_aspect_ratio",
+          frames_per_second: 6,
+          motion_bucket_id: 127
         }
       }
     );

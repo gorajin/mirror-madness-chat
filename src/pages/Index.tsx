@@ -85,9 +85,16 @@ const Index = () => {
       for (let i = 0; i < 30; i++) {
         await new Promise(resolve => setTimeout(resolve, 2000));
 
-        const { data: statusData, error: statusError } = await supabase.functions.invoke("job-status", {
-          body: { jobId },
-        });
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/job-status?jobId=${jobId}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
+            }
+          }
+        );
+        const statusData = response.ok ? await response.json() : null;
+        const statusError = !response.ok;
 
         if (statusError) {
           console.error("Error checking job status:", statusError);
