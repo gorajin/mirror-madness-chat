@@ -1,5 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import 'https://deno.land/x/xhr@0.1.0/mod.ts';
+import Replicate from 'https://esm.sh/replicate@0.34.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { text, voice = 'alloy' } = await req.json();
+    const { text, voice = 'English_PlayfulGirl' } = await req.json();
 
     if (!text) {
       return new Response(
@@ -21,36 +21,50 @@ serve(async (req) => {
       );
     }
 
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-    if (!OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY not configured');
+    const REPLICATE_API_TOKEN = Deno.env.get('REPLICATE_API_TOKEN');
+    if (!REPLICATE_API_TOKEN) {
+      throw new Error('REPLICATE_API_TOKEN not configured');
     }
 
     console.log(`Generating speech for text: "${text}" with voice: ${voice}`);
 
-    // Generate speech from text using OpenAI TTS
-    const response = await fetch('https://api.openai.com/v1/audio/speech', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'tts-1',
-        input: text,
-        voice: voice,
-        response_format: 'mp3',
-      }),
-    });
+    const replicate = new Replicate({ auth: REPLICATE_API_TOKEN });
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('OpenAI TTS error:', error);
-      throw new Error(`Failed to generate speech: ${error}`);
+    // Generate speech using Minimax Speech-02-HD
+    const output = await replicate.run(
+      "minimax/speech-02-hd",
+      {
+        input: {
+          text: text,
+          voice_id: voice,
+          speed: 1.0,
+          volume: 1.0,
+          pitch: 0,
+          sample_rate: 32000,
+          bitrate: 128000,
+          channel: "mono",
+          english_normalization: true
+        }
+      }
+    );
+
+    console.log('Minimax TTS output:', output);
+
+    // Output is a URL string
+    const audioUrl = typeof output === 'string' ? output : null;
+    
+    if (!audioUrl) {
+      console.error('Unexpected output format:', output);
+      throw new Error('Failed to generate speech - no valid URL returned');
     }
 
-    // Convert audio buffer to base64
-    const arrayBuffer = await response.arrayBuffer();
+    // Fetch the audio file and convert to base64
+    const audioResponse = await fetch(audioUrl);
+    if (!audioResponse.ok) {
+      throw new Error('Failed to fetch generated audio');
+    }
+
+    const arrayBuffer = await audioResponse.arrayBuffer();
     const base64Audio = btoa(
       String.fromCharCode(...new Uint8Array(arrayBuffer))
     );

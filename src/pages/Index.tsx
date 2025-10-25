@@ -70,7 +70,10 @@ const Index = () => {
       console.log("Generating audio for message:", text);
       
       const { data, error } = await supabase.functions.invoke('text-to-speech', {
-        body: { text, voice: 'nova' } // nova is a clear, friendly voice
+        body: { 
+          text, 
+          voice: 'English_PlayfulGirl' // Fun, energetic voice for gaslighting messages
+        }
       });
 
       if (error) throw error;
