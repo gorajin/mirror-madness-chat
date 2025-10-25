@@ -12,11 +12,15 @@ const Index = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [intensity, setIntensity] = useState(1);
   const [tone, setTone] = useState<"compliment" | "roast" | "coach">("coach");
+  const [isVideoPending, setIsVideoPending] = useState(false);
+  const [reactionUrl, setReactionUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleCapture = async (imageData: string) => {
     setIsProcessing(true);
     setMessage(null);
+    setReactionUrl(null);
+    setIsVideoPending(false);
 
     try {
       const { data, error } = await supabase.functions.invoke("reflect", {
@@ -40,6 +44,9 @@ const Index = () => {
       if (data) {
         setMessage(data.message);
         setMood(data.mood);
+
+        // Start video generation in background
+        startVideoGeneration(imageData, data.message, data.mood);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -50,6 +57,68 @@ const Index = () => {
       });
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const startVideoGeneration = async (imageData: string, line: string, mood: string) => {
+    setIsVideoPending(true);
+
+    try {
+      // Start video generation job
+      const { data: jobData, error: jobError } = await supabase.functions.invoke("reaction-video", {
+        body: {
+          imageBase64: imageData,
+          line,
+          mood,
+          mode: "seedance"
+        },
+      });
+
+      if (jobError || !jobData?.jobId) {
+        console.error("Error starting video generation:", jobError);
+        setIsVideoPending(false);
+        return;
+      }
+
+      // Poll for job completion (max 30 attempts = 60 seconds)
+      const jobId = jobData.jobId;
+      for (let i = 0; i < 30; i++) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        const { data: statusData, error: statusError } = await supabase.functions.invoke("job-status", {
+          body: { jobId },
+        });
+
+        if (statusError) {
+          console.error("Error checking job status:", statusError);
+          continue;
+        }
+
+        if (statusData?.status === "succeeded" && statusData.videoUrl) {
+          setReactionUrl(statusData.videoUrl);
+          setIsVideoPending(false);
+          break;
+        }
+
+        if (statusData?.status === "failed") {
+          console.error("Video generation failed:", statusData.error);
+          setIsVideoPending(false);
+          toast({
+            title: "Video generation failed",
+            description: "Could not generate reaction clip",
+            variant: "destructive",
+          });
+          break;
+        }
+      }
+
+      // Timeout after 60s
+      if (isVideoPending) {
+        setIsVideoPending(false);
+      }
+    } catch (error) {
+      console.error("Error in video generation:", error);
+      setIsVideoPending(false);
     }
   };
 
@@ -81,8 +150,33 @@ const Index = () => {
 
           {/* Message Display */}
           {message && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
               <MessageBubble message={message} mood={mood} />
+              
+              {/* Video Generation Status */}
+              {isVideoPending && (
+                <div className="text-center p-6 rounded-2xl bg-card/50 border border-primary/20">
+                  <p className="text-sm text-muted-foreground">🎬 Generating your reaction clip…</p>
+                  <div className="flex justify-center gap-2 mt-3">
+                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                    <div className="w-2 h-2 rounded-full bg-secondary animate-pulse delay-75" />
+                    <div className="w-2 h-2 rounded-full bg-accent animate-pulse delay-150" />
+                  </div>
+                </div>
+              )}
+
+              {/* Reaction Video */}
+              {reactionUrl && (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <video 
+                    src={reactionUrl} 
+                    playsInline 
+                    loop 
+                    controls 
+                    className="w-full max-h-[560px] rounded-2xl bg-black/80 border-2 border-primary/30"
+                  />
+                </div>
+              )}
             </div>
           )}
 

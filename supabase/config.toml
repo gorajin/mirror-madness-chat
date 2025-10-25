@@ -2,3 +2,9 @@ project_id = "mjxtzzpfpbllmcbhkusp"
 
 [functions.reflect]
 verify_jwt = false
+
+[functions.reaction-video]
+verify_jwt = false
+
+[functions.job-status]
+verify_jwt = false
