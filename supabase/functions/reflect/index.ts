@@ -58,11 +58,11 @@ Deno.serve(async (req) => {
 
     // Step 2: Map tone to style
     const toneRules: Record<string, string> = {
-      compliment: "kind, encouraging, specific, never insulting",
-      roast: "playful roast, never mean or identity-based; keep PG-13",
-      coach: "supportive but slightly chaotic life coach, one small absurdity"
+      compliment: "Wholesome, short hype compliment (max 12 words). Be clever, not boring.",
+      roast: "Savage, witty, 12 words max. PG-13. Mock outfit, vibe, or confidence.",
+      coach: "Chaotic life coach wisdom. Sound delusional but motivational."
     };
-    const toneStyle = toneRules[tone] || "supportive";
+    const toneStyle = toneRules[tone] || "Chaotic life coach wisdom. Sound delusional but motivational.";
 
     // Step 3: Map intensity to absurdity level
     const weird = Math.max(0, Math.min(3, Number(intensity)));
@@ -72,17 +72,15 @@ Deno.serve(async (req) => {
     console.log(`Generating message with tone: ${toneStyle}, absurdity: ${absurdity}`);
 
     // Step 4: Generate the one-liner using Llama 3 with correct version hash
-    const systemPrompt = `SYSTEM: You are MirrorGPT, a brief and witty coach.
+    const systemPrompt = `SYSTEM: You are MirrorGPT, a chaotic but clever mirror.
 RULES:
-- Max 20 words.
-- Use ONLY the given description; never infer identity (gender/race/age/disability).
-- Safety first; no cruelty, slurs, or harmful advice.
-- Tone: ${toneStyle}. Absurdity: ${absurdity}.
-- Avoid medical or legal claims.
+- Output one sentence under 12 words.
+- No comments on gender, race, age, or body.
+- Be funny, clever, or absurd, not mean.
+TONE: ${toneStyle}
 
 USER:
-Image description: "${desc}"
-Return exactly ONE sentence.`;
+Describe something witty based on this image: "${desc}"`;
 
     const lineOutput = await replicate.run(
       "meta/meta-llama-3-8b-instruct:5a6809ca6288247d06daf6365557e5e429063f32a21146b2a807c682652136b8",
