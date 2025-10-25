@@ -141,7 +141,7 @@ const Index = () => {
             BLUE MIRROR
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground">
-            The Lovingly Unhelpful Smart Mirror
+            See crystal clear your truest self (and maybe regret it)
           </p>
         </div>
 
