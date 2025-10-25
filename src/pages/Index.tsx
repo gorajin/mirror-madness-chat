@@ -137,15 +137,12 @@ const Index = () => {
   return <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 bg-[length:200%_200%] animate-pulse">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
-        <motion.div initial={{
-        opacity: 0,
-        y: -20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        duration: 0.5
-      }} className="text-center mb-12 space-y-3">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-12 space-y-3"
+        >
           <h1 className="text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-violet-400 drop-shadow-[0_0_12px_rgba(59,130,246,0.55)] flex items-center justify-center gap-4">
             <Sparkles className="w-10 h-10 md:w-14 md:h-14 text-blue-400" />
             Blue Mirror
@@ -157,46 +154,69 @@ const Index = () => {
 
         <div className="space-y-8">
           {/* Mood Mode Buttons */}
-          
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.35, delay: 0.1 }}
+            className="grid grid-cols-3 gap-3"
+          >
+            <Button 
+              onClick={() => setTone("compliment")}
+              className={`py-6 text-base font-semibold transition-all duration-300 ${
+                tone === "compliment" 
+                  ? "bg-teal-500 hover:bg-teal-400 shadow-[0_0_22px_rgba(20,184,166,0.5)]" 
+                  : "bg-teal-600/60 hover:bg-teal-500/80"
+              }`}
+            >
+              💙 Sweet
+            </Button>
+            <Button 
+              onClick={() => setTone("roast")}
+              className={`py-6 text-base font-semibold transition-all duration-300 ${
+                tone === "roast" 
+                  ? "bg-orange-500 hover:bg-orange-400 shadow-[0_0_22px_rgba(249,115,22,0.5)]" 
+                  : "bg-orange-600/60 hover:bg-orange-500/80"
+              }`}
+            >
+              🔥 Savage
+            </Button>
+            <Button 
+              onClick={() => setTone("coach")}
+              className={`py-6 text-base font-semibold transition-all duration-300 ${
+                tone === "coach" 
+                  ? "bg-violet-500 hover:bg-violet-400 shadow-[0_0_22px_rgba(139,92,246,0.5)]" 
+                  : "bg-violet-600/60 hover:bg-violet-500/80"
+              }`}
+            >
+              🌀 Delulu
+            </Button>
+          </motion.div>
 
           {/* Webcam Capture */}
-          <motion.div initial={{
-          opacity: 0,
-          y: 10
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          duration: 0.35,
-          delay: 0.2
-        }}>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.2 }}
+          >
             <WebcamCapture onCapture={handleCapture} isProcessing={isProcessing} />
           </motion.div>
 
           {/* Message Display */}
-          {message && <motion.div initial={{
-          opacity: 0,
-          y: 10,
-          filter: 'blur(4px)'
-        }} animate={{
-          opacity: 1,
-          y: 0,
-          filter: 'blur(0px)'
-        }} exit={{
-          opacity: 0,
-          y: -10
-        }} transition={{
-          duration: 0.35,
-          ease: 'easeOut'
-        }} className="space-y-6">
+          {message && <motion.div 
+              initial={{ opacity: 0, y: 10, filter: 'blur(4px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
+              className="space-y-6"
+            >
               <MessageBubble message={message} mood={mood} />
               
               {/* Video Generation Status */}
-              {isVideoPending && <motion.div initial={{
-            opacity: 0
-          }} animate={{
-            opacity: 1
-          }} className="text-center p-6 rounded-2xl bg-blue-900/35 border border-blue-500/25 backdrop-blur-md">
+              {isVideoPending && <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center p-6 rounded-2xl bg-blue-900/35 border border-blue-500/25 backdrop-blur-md"
+                >
                   <p className="text-sm text-blue-200">🎬 Generating your reaction clip…</p>
                   <div className="flex justify-center gap-2 mt-3">
                     <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
@@ -206,25 +226,28 @@ const Index = () => {
                 </motion.div>}
 
               {/* Talking Avatar Video */}
-              {reactionUrl && <motion.div initial={{
-            opacity: 0,
-            scale: 0.95
-          }} animate={{
-            opacity: 1,
-            scale: 1
-          }} transition={{
-            duration: 0.35
-          }}>
-                  <video src={reactionUrl} autoPlay playsInline loop controls className="w-full max-h-[560px] rounded-2xl bg-black/80 border-2 border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.35)]" />
+              {reactionUrl && <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.35 }}
+                >
+                  <video 
+                    src={reactionUrl} 
+                    autoPlay 
+                    playsInline 
+                    loop 
+                    controls 
+                    className="w-full max-h-[560px] rounded-2xl bg-black/80 border-2 border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.35)]" 
+                  />
                 </motion.div>}
             </motion.div>}
 
           {/* Loading State */}
-          {isProcessing && <motion.div initial={{
-          opacity: 0
-        }} animate={{
-          opacity: 1
-        }} className="text-center space-y-4">
+          {isProcessing && <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center space-y-4"
+            >
               <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-blue-500/10 border border-blue-500/20">
                 <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
                 <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse delay-75" />
@@ -237,13 +260,12 @@ const Index = () => {
         </div>
 
         {/* Footer */}
-        <motion.footer initial={{
-        opacity: 0
-      }} animate={{
-        opacity: 1
-      }} transition={{
-        delay: 0.5
-      }} className="mt-16 text-center text-xs text-blue-300/60">
+        <motion.footer 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="mt-16 text-center text-xs text-blue-300/60"
+        >
           <p>Remember: Blue Mirror's wisdom is 100% chaotic and 0% medical advice.</p>
         </motion.footer>
       </div>
