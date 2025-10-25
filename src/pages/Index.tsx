@@ -208,6 +208,8 @@ const Index = () => {
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                   <video 
                     src={reactionUrl} 
+                    autoPlay
+                    muted
                     playsInline 
                     loop 
                     controls 
