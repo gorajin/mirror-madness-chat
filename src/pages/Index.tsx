@@ -60,7 +60,7 @@ const Index = () => {
     }
   };
 
-  const startVideoGeneration = async (imageData: string, line: string, mood: string) => {
+  const startVideoGeneration = async (imageData: string, line: string, mood: string, attemptedRetry = false) => {
     setIsVideoPending(true);
 
     try {
@@ -102,10 +102,21 @@ const Index = () => {
 
         if (statusData?.status === "failed") {
           console.error("Video generation failed:", statusData.error);
+          // If the model queue is full, retry once automatically
+          if (!attemptedRetry && typeof statusData?.error === 'string' && /queue is full/i.test(statusData.error)) {
+            toast({
+              title: "Model queue is full",
+              description: "Retrying video generation…",
+              variant: "default",
+            });
+            await new Promise(r => setTimeout(r, 3000));
+            await startVideoGeneration(imageData, line, mood, true);
+            return;
+          }
           setIsVideoPending(false);
           toast({
             title: "Video generation failed",
-            description: "Could not generate reaction clip",
+            description: statusData?.error || "Could not generate reaction clip",
             variant: "destructive",
           });
           break;
