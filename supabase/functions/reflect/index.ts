@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Replicate from "https://esm.sh/replicate@0.34.1";
 
 const corsHeaders = {
@@ -6,7 +5,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -39,14 +38,15 @@ serve(async (req) => {
       auth: REPLICATE_API_TOKEN,
     });
 
-    // Step 1: Get image caption using LLaVA
+    // Step 1: Get image caption using LLaVA with correct version hash
     console.log("Generating image caption...");
     const captionOutput = await replicate.run(
       "yorickvp/llava-13b:80537f9eead1a5bfa72d5ac6ea6414379be41d4d4f6679fd776e9535d1eb58bb",
       {
         input: {
           image: imageBase64,
-          prompt: "Describe the person's visible expression, posture, and outfit briefly (max 12 words)."
+          prompt: "Describe the person's visible expression, posture, and outfit briefly (max 12 words).",
+          max_tokens: 100
         }
       }
     );
@@ -71,7 +71,7 @@ serve(async (req) => {
 
     console.log(`Generating message with tone: ${toneStyle}, absurdity: ${absurdity}`);
 
-    // Step 4: Generate the one-liner
+    // Step 4: Generate the one-liner using Llama 3 with correct version hash
     const systemPrompt = `SYSTEM: You are MirrorGPT, a brief and witty coach.
 RULES:
 - Max 20 words.
@@ -85,12 +85,13 @@ Image description: "${desc}"
 Return exactly ONE sentence.`;
 
     const lineOutput = await replicate.run(
-      "meta/llama-3.1-8b-instruct:8793e69c44e8c5c6fa20eb0e2c57b16667c1ec77a5bef298f0adf2edbe4bc2ed",
+      "meta/meta-llama-3-8b-instruct:5a6809ca6288247d06daf6365557e5e429063f32a21146b2a807c682652136b8",
       {
         input: {
           prompt: systemPrompt,
           temperature: 0.2,
-          max_tokens: 60
+          max_tokens: 60,
+          top_p: 0.9
         }
       }
     );
@@ -114,12 +115,16 @@ Return exactly ONE sentence.`;
 
   } catch (error) {
     console.error("Error in reflect function:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    console.error("Error details:", errorMessage, errorStack);
     
     // Return a friendly fallback message
     return new Response(
       JSON.stringify({ 
         mood: "neutral", 
-        message: "You've got this—coffee and curiosity should help." 
+        message: "You've got this—coffee and curiosity should help.",
+        error: errorMessage // Include error for debugging
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
