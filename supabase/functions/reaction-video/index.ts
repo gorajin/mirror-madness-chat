@@ -1,6 +1,8 @@
 import Replicate from "https://esm.sh/replicate@0.34.1";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
+const supabaseAdmin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -36,6 +38,11 @@ Deno.serve(async (req) => {
     // Generate job ID
     const jobId = crypto.randomUUID();
     jobs.set(jobId, { status: "queued" });
+    try {
+      await supabaseAdmin.from('reaction_jobs').insert({ id: jobId, status: 'queued' });
+    } catch (e) {
+      console.error('Failed to insert reaction_jobs queued row:', e);
+    }
 
     // Fire-and-forget async processing
     processVideoGeneration(jobId, { imageBase64, line, mood, mode, token: REPLICATE_API_TOKEN });
@@ -60,6 +67,11 @@ async function processVideoGeneration(
 ) {
   try {
     jobs.set(jobId, { status: "running" });
+    try {
+      await supabaseAdmin.from('reaction_jobs').update({ status: 'running' }).eq('id', jobId);
+    } catch (e) {
+      console.error('Failed to mark job running:', e);
+    }
     console.log(`Starting video generation for job ${jobId}`);
 
     const replicate = new Replicate({ auth: params.token });
@@ -95,13 +107,28 @@ async function processVideoGeneration(
 
     console.log(`Video generated successfully for job ${jobId}: ${videoUrl}`);
     jobs.set(jobId, { status: "succeeded", videoUrl: String(videoUrl) });
+    try {
+      await supabaseAdmin.from('reaction_jobs')
+        .update({ status: 'succeeded', video_url: String(videoUrl) })
+        .eq('id', jobId);
+    } catch (e) {
+      console.error('Failed to mark job succeeded:', e);
+    }
 
   } catch (error) {
     console.error(`Video generation failed for job ${jobId}:`, error);
+    const errMsg = error instanceof Error ? error.message : String(error);
     jobs.set(jobId, { 
       status: "failed", 
-      error: error instanceof Error ? error.message : String(error) 
+      error: errMsg 
     });
+    try {
+      await supabaseAdmin.from('reaction_jobs')
+        .update({ status: 'failed', error: errMsg })
+        .eq('id', jobId);
+    } catch (e2) {
+      console.error('Failed to mark job failed:', e2);
+    }
   }
 }
 
