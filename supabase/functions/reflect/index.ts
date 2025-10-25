@@ -77,6 +77,11 @@ RULES:
 - Output one sentence under 12 words.
 - No comments on gender, race, age, or body.
 - Be funny, clever, or absurd, not mean.
+- Never insert extra spaces inside words (e.g., "s avor ing" → "savoring").
+- No spaces before punctuation (, . ! ?).
+- Always return grammatically correct English.
+- Write in smooth conversational English, not token-by-token fragments.
+- Avoid broken contractions or split slang.
 TONE: ${toneStyle}
 
 USER:
@@ -94,8 +99,14 @@ Describe something witty based on this image: "${desc}"`;
       }
     );
 
+    // Clean up output to remove spacing issues
     const messageRaw = Array.isArray(lineOutput) ? lineOutput.join(" ") : String(lineOutput);
-    const message = messageRaw.replace(/\s+/g, " ").trim().slice(0, 160);
+    const message = messageRaw
+      .replace(/\s+/g, " ")                // collapse multiple spaces
+      .replace(/\s+([,.;!?])/g, "$1")      // no space before punctuation
+      .replace(/([.,!?])(?=[^\s])/g, "$1 ")// ensure one space after punctuation
+      .trim()
+      .slice(0, 160);
 
     // Determine mood from description
     const mood = /smile|happy|cheerful|confident/i.test(desc) ? "upbeat" :
