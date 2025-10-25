@@ -80,9 +80,9 @@ const Index = () => {
         return;
       }
 
-      // Poll for job completion (max 30 attempts = 60 seconds)
+      // Poll for job completion (max 60 attempts = 120 seconds, checking every 2 seconds)
       const jobId = jobData.jobId;
-      for (let i = 0; i < 30; i++) {
+      for (let i = 0; i < 60; i++) {
         await new Promise(resolve => setTimeout(resolve, 2000));
 
         const { data: statusData, error: statusError } = await supabase.functions.invoke("job-status", {
@@ -112,7 +112,7 @@ const Index = () => {
         }
       }
 
-      // Timeout after 60s
+      // Timeout after 120s
       if (isVideoPending) {
         setIsVideoPending(false);
       }

@@ -103,6 +103,9 @@ async function processVideoGeneration(
 
     // Step 2: Create talking avatar with omnihuman using the audio and image
     console.log('Step 2: Creating talking avatar with omnihuman...');
+    console.log('Image data length:', params.imageBase64.length);
+    console.log('Audio URL:', audioUrl);
+    
     const videoOutput = await replicate.run(
       "bytedance/omni-human",
       {
@@ -113,7 +116,8 @@ async function processVideoGeneration(
       }
     );
 
-    console.log(`Omni-human output:`, videoOutput);
+    console.log(`Omni-human output type:`, typeof videoOutput);
+    console.log(`Omni-human output:`, JSON.stringify(videoOutput).substring(0, 200));
 
     // Extract video URL from output
     const videoUrl = typeof videoOutput === 'string' ? videoOutput : null;
