@@ -107,7 +107,7 @@ export const WebcamCapture = ({ onCapture, isProcessing }: WebcamCaptureProps) =
         ) : (
           <>
             <Camera className="w-5 h-5 mr-2" />
-            Capture & Reflect
+            Face the Truth
           </>
         )}
       </Button>
