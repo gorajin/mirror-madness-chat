@@ -137,7 +137,7 @@ const Index = () => {
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
         <div className="text-center mb-8 space-y-2">
-          <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent flex items-center justify-center gap-3">
+          <h1 className="text-4xl md:text-6xl font-bold font-kid-draws bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent flex items-center justify-center gap-3">
             <Sparkles className="w-8 h-8 md:w-12 md:h-12 text-primary" />
             MirrorGPT
           </h1>
