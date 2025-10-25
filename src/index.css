@@ -11,53 +11,53 @@ All colors MUST be HSL.
     --background: 200 100% 85%;
     --foreground: 220 40% 20%;
 
-    --card: 270 40% 15%;
-    --card-foreground: 280 20% 98%;
+    --card: 210 50% 92%;
+    --card-foreground: 220 40% 20%;
 
-    --popover: 270 40% 15%;
-    --popover-foreground: 280 20% 98%;
+    --popover: 210 50% 95%;
+    --popover-foreground: 220 40% 20%;
 
-    --primary: 280 80% 60%;
-    --primary-foreground: 280 20% 98%;
+    --primary: 210 100% 50%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 320 70% 55%;
-    --secondary-foreground: 280 20% 98%;
+    --secondary: 195 85% 45%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 270 30% 25%;
-    --muted-foreground: 280 15% 70%;
+    --muted: 210 40% 75%;
+    --muted-foreground: 220 30% 40%;
 
-    --accent: 320 90% 65%;
-    --accent-foreground: 280 20% 98%;
+    --accent: 200 95% 55%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 280 20% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 270 30% 25%;
-    --input: 270 30% 25%;
-    --ring: 280 80% 60%;
+    --border: 210 50% 70%;
+    --input: 210 40% 90%;
+    --ring: 210 100% 50%;
 
     --radius: 1rem;
 
     /* Mirror gradient */
-    --gradient-mirror: linear-gradient(135deg, hsl(280 80% 60%), hsl(320 70% 55%));
-    --gradient-subtle: linear-gradient(180deg, hsl(270 50% 10%), hsl(270 40% 15%));
+    --gradient-mirror: linear-gradient(135deg, hsl(210 100% 50%), hsl(195 85% 45%));
+    --gradient-subtle: linear-gradient(180deg, hsl(200 100% 85%), hsl(210 50% 92%));
     
     /* Glow effects */
-    --glow-purple: 0 0 40px hsl(280 80% 60% / 0.3);
-    --glow-pink: 0 0 40px hsl(320 70% 55% / 0.3);
+    --glow-purple: 0 0 40px hsl(210 100% 50% / 0.4);
+    --glow-pink: 0 0 40px hsl(195 85% 45% / 0.4);
     
     /* Glass effect */
-    --glass-bg: hsl(270 40% 15% / 0.6);
-    --glass-border: hsl(280 40% 40% / 0.2);
+    --glass-bg: hsl(210 50% 95% / 0.7);
+    --glass-border: hsl(210 40% 70% / 0.3);
 
-    --sidebar-background: 270 50% 10%;
-    --sidebar-foreground: 280 20% 98%;
-    --sidebar-primary: 280 80% 60%;
-    --sidebar-primary-foreground: 280 20% 98%;
-    --sidebar-accent: 270 40% 15%;
-    --sidebar-accent-foreground: 280 20% 98%;
-    --sidebar-border: 270 30% 25%;
-    --sidebar-ring: 280 80% 60%;
+    --sidebar-background: 210 50% 92%;
+    --sidebar-foreground: 220 40% 20%;
+    --sidebar-primary: 210 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 50% 95%;
+    --sidebar-accent-foreground: 220 40% 20%;
+    --sidebar-border: 210 50% 70%;
+    --sidebar-ring: 210 100% 50%;
   }
 }
 
