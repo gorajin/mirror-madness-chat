@@ -72,41 +72,55 @@ async function processVideoGeneration(
     } catch (e) {
       console.error('Failed to mark job running:', e);
     }
-    console.log(`Starting video generation for job ${jobId}`);
+    console.log(`Starting talking avatar generation for job ${jobId}`);
 
     const replicate = new Replicate({ auth: params.token });
 
-    // Use Bytedance Seedance for image-to-video generation
-    const palette = params.mood === "upbeat" ? "bright colorful" : 
-                    params.mood === "sleepy" ? "calm dreamy" : "warm neutral";
-    
-    const prompt = `Animate this image with kinetic text overlay: "${sanitize(params.line)}". ${palette} gradient effects, smooth camera movement, bold typography with outline, subtle sparkles, wholesome aesthetic.`;
-
-    console.log(`Calling Bytedance Seedance with prompt: ${prompt}`);
-
-    const output = await replicate.run(
-      "bytedance/seedance-1-lite",
+    // Step 1: Generate audio with minimax TTS
+    console.log('Step 1: Generating audio with minimax TTS...');
+    const audioOutput = await replicate.run(
+      "minimax/speech-02-hd",
       {
         input: {
-          image: params.imageBase64,
-          prompt: prompt,
-          duration: 5,
-          resolution: "720p",
-          aspect_ratio: "9:16",
-          fps: 24,
-          camera_fixed: false
+          text: sanitize(params.line),
+          voice_id: 'English_PlayfulGirl', // Fun voice for gaslighting
+          speed: 1.0,
+          volume: 1.0,
+          pitch: 0,
+          sample_rate: 32000,
+          bitrate: 128000,
+          channel: "mono",
+          english_normalization: true
         }
       }
     );
 
-    console.log(`Seedance output:`, output);
+    const audioUrl = typeof audioOutput === 'string' ? audioOutput : null;
+    if (!audioUrl) {
+      throw new Error('Failed to generate audio');
+    }
+    console.log(`Audio generated: ${audioUrl}`);
 
-    // Seedance returns a string URL directly
-    const videoUrl = typeof output === 'string' ? output : null;
+    // Step 2: Create talking avatar with omnihuman using the audio and image
+    console.log('Step 2: Creating talking avatar with omnihuman...');
+    const videoOutput = await replicate.run(
+      "bytedance/omni-human",
+      {
+        input: {
+          reference_image: params.imageBase64,
+          driven_audio: audioUrl
+        }
+      }
+    );
+
+    console.log(`Omni-human output:`, videoOutput);
+
+    // Extract video URL from output
+    const videoUrl = typeof videoOutput === 'string' ? videoOutput : null;
     
     if (!videoUrl || typeof videoUrl !== 'string') {
-      console.error('Unexpected output format:', output);
-      throw new Error(`Seedance video generation failed - no valid URL returned. Output: ${JSON.stringify(output)}`);
+      console.error('Unexpected output format:', videoOutput);
+      throw new Error(`Talking avatar generation failed - no valid URL returned. Output: ${JSON.stringify(videoOutput)}`);
     }
 
     console.log(`Video generated successfully for job ${jobId}: ${videoUrl}`);
